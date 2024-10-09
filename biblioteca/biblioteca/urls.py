@@ -24,6 +24,7 @@ urlpatterns = [
     # URLs para o modelo Livro
     path('livros/', views.LivroList.as_view(), name='livros-list'),  # Atualizado para a CBV LivroList
     path('livros/<int:pk>/', views.LivroDetail.as_view(), name='livro-detail'),  # Atualizado para a CBV LivroDetail
+    path('livros/create/', views.LivroList.as_view(), name='livro-create'),  # Adiciona a rota para criar livro
 
     # URLs para o modelo Categoria
     path('categorias/', views.CategoriaList.as_view(), name='categorias-list'),  # Nova rota para a CBV CategoriaList
