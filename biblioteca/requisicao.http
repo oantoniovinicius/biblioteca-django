@@ -5,18 +5,37 @@ GET http://127.0.0.1:8000/livros/?limit=5&offset=4
 ###
 GET http://127.0.0.1:8000/livros/?titulo=Hobbit
 
-
 ###
 GET http://127.0.0.1:8000/livros/?ordering=titulo
+
 ###
-GET http://127.0.0.1:8000/livros/5
+GET http://127.0.0.1:8000/livros/7
 
 ###
 POST http://127.0.0.1:8000/livros/create/
 
 {
     "titulo": "Redes de Computadores",
-    "autor": "Tanenbaum",
-    "categoria": "Ficção", 
+    "autor": 1,
+    "categoria": 1,
     "publicado_em": "2024-05-01"
 }
+
+###
+GET http://127.0.0.1:8000/livros/?titulo=redes
+
+###
+GET http://127.0.0.1:8000/livros/18
+
+###
+PUT http://127.0.0.1:8000/livros/18/
+
+{
+    "titulo": "Redes de Computadores",
+    "autor": 5,
+    "categoria": 1,
+    "publicado_em": "2024-05-01"
+}
+
+###
+DELETE http://127.0.0.1:8000/livros/7/
