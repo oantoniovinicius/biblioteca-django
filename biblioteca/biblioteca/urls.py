@@ -20,6 +20,16 @@ from core import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('livros/', views.livro_list_create, name='livros-list-create'),
-    path('livros/<int:pk>/', views.livro_detail, name='livro-detail'),
+
+    # URLs para o modelo Livro
+    path('livros/', views.LivroList.as_view(), name='livros-list'),  # Atualizado para a CBV LivroList
+    path('livros/<int:pk>/', views.LivroDetail.as_view(), name='livro-detail'),  # Atualizado para a CBV LivroDetail
+
+    # URLs para o modelo Categoria
+    path('categorias/', views.CategoriaList.as_view(), name='categorias-list'),  # Nova rota para a CBV CategoriaList
+    path('categorias/<int:pk>/', views.CategoriaDetail.as_view(), name='categoria-detail'),  # Nova rota para a CBV CategoriaDetail
+
+    # URLs para o modelo Autor
+    path('autores/', views.AutorList.as_view(), name='autores-list'),  # Nova rota para a CBV AutorList
+    path('autores/<int:pk>/', views.AutorDetail.as_view(), name='autor-detail'),  # Nova rota para a CBV AutorDetail
 ]
