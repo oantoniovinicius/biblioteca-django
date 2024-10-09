@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'core',
 ]
 
@@ -125,7 +126,14 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    ),
+    # Configuração dos backends de filtros e ordenação
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',  # Backend de filtros
+        'rest_framework.filters.OrderingFilter',              # Backend de ordenação
+        'rest_framework.filters.SearchFilter',                # Backend de busca
+    ],
+
+    # Configuração de Paginação
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 5,  # Define o tamanho da página como 5 itens
 }
