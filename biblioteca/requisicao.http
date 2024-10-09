@@ -1,0 +1,22 @@
+
+###
+GET http://127.0.0.1:8000/livros/?limit=5&offset=4
+
+###
+GET http://127.0.0.1:8000/livros/?titulo=Hobbit
+
+
+###
+GET http://127.0.0.1:8000/livros/?ordering=titulo
+###
+GET http://127.0.0.1:8000/livros/5
+
+###
+POST http://127.0.0.1:8000/livros/create/
+
+{
+    "titulo": "Redes de Computadores",
+    "autor": "Tanenbaum",
+    "categoria": "Ficção", 
+    "publicado_em": "2024-05-01"
+}
