@@ -8,7 +8,6 @@ class CategoriaList(generics.ListCreateAPIView):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
     name = "categoria-list"
-    # Ordenação disponível pelo nome da categoria
     ordering_fields = ['nome']
 
 class CategoriaDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -21,7 +20,6 @@ class AutorList(generics.ListCreateAPIView):
     queryset = Autor.objects.all()
     serializer_class = AutorSerializer
     name = "autor-list"
-    # Ordenação disponível pelo nome do autor
     ordering_fields = ['nome']
 
 class AutorDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -44,15 +42,15 @@ class LivroList(generics.ListCreateAPIView):
     queryset = Livro.objects.all()
     serializer_class = LivroSerializer
     filterset_class = LivroFilter
-    # Adicionar o atributo de ordenação
-    ordering_fields = ['titulo', 'autor__nome', 'categoria__nome', 'publicado_em']  # Campos disponíveis para ordenação
-    ordering = ['titulo']  # Ordem padrão (opcional)
+    ordering_fields = ['titulo', 'autor__nome', 'categoria__nome', 'publicado_em']
+    ordering = ['titulo']
 
 class LivroDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Livro.objects.all()
     serializer_class = LivroSerializer
     name = "livro-detail"
     
+# Permissão personalizada para Colecao
 class IsColecionadorOrReadOnly(permissions.BasePermission):
     """
     Permite apenas ao colecionador modificar os dados.
@@ -65,6 +63,7 @@ class IsColecionadorOrReadOnly(permissions.BasePermission):
         # Permite modificações apenas para o colecionador da coleção
         return obj.colecionador == request.user
 
+# View para listar e criar coleções
 class ColecaoListCreate(generics.ListCreateAPIView):
     """
     Listagem e criação de coleções.
@@ -79,6 +78,7 @@ class ColecaoListCreate(generics.ListCreateAPIView):
         # Define o colecionador como o usuário autenticado
         serializer.save(colecionador=self.request.user)
 
+# View para detalhar, editar e excluir coleções
 class ColecaoDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Recuperação, edição e exclusão de uma coleção específica.
@@ -87,4 +87,3 @@ class ColecaoDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Colecao.objects.all()
     serializer_class = ColecaoSerializer
     permission_classes = [IsColecionadorOrReadOnly]
-    
