@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from core import views
 from rest_framework.authtoken.views import obtain_auth_token
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -36,4 +37,8 @@ urlpatterns = [
     path('autores/<int:pk>/', views.AutorDetail.as_view(), name='autor-detail'),  # Nova rota para a CBV AutorDetail
     
     path('api/token/', obtain_auth_token, name='api_token_auth'),  # Endpoint para obter token
+
+    # Endpoints de schema e documentação
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
