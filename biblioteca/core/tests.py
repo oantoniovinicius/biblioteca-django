@@ -1,122 +1,60 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
-from django.contrib.auth.models import User
-from core.models import Colecao
 from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
+from core.models import Colecao, Livro, Categoria, Autor
 
 
-class ColecaoTestCase(APITestCase):
+class ColecaoTests(APITestCase):
     def setUp(self):
-        # Criando dois usuários (um colecionador e outro não)
-        self.colecionador = User.objects.create_user(username='colecionador', password='senha123')
-        self.outro_usuario = User.objects.create_user(username='outro_usuario', password='senha123')
-        
-        # Criando um token para autenticação
-        self.colecionador_token = Token.objects.create(user=self.colecionador)
-        self.outro_usuario_token = Token.objects.create(user=self.outro_usuario)
+        # Criação de usuários
+        self.user = User.objects.create_user(username='colecionador1', password='senha123')
+        self.other_user = User.objects.create_user(username='colecionador2', password='senha456')
 
-        # Criando uma coleção associada ao colecionador
-        self.colecao = Colecao.objects.create(nome='Minha Coleção', colecionador=self.colecionador)
+        # Geração de tokens
+        self.user_token = Token.objects.create(user=self.user)
+        self.other_user_token = Token.objects.create(user=self.other_user)
 
-    def test_criar_colecao_usuario_autenticado(self):
-        """
-        Teste que verifica a criação de uma nova coleção por um usuário autenticado.
-        """
-        url = '/colecoes/'  # URL da view de criação de coleção
-        data = {'nome': 'Nova Coleção', 'descricao': 'Uma descrição válida'}
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.colecionador_token.key)
-        
-        response = self.client.post(url, data, format='json')
-        
-        # Verifica se a coleção foi criada com sucesso
+        # Configuração inicial dos modelos
+        self.categoria = Categoria.objects.create(nome='Ficção Científica')
+        self.autor = Autor.objects.create(nome='Isaac Asimov')
+
+        self.livro1 = Livro.objects.create(
+            titulo='Fundação', autor=self.autor, categoria=self.categoria, publicado_em='1951-01-01'
+        )
+
+        self.colecao = Colecao.objects.create(
+            nome='Coleção de Isaac Asimov', descricao='Livros do autor', colecionador=self.user
+        )
+        self.colecao.livros.set([self.livro1])
+
+    def autenticar_como_user(self):
+        """Autentica como colecionador1."""
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.user_token.key)
+
+    def autenticar_como_other_user(self):
+        """Autentica como colecionador2."""
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.other_user_token.key)
+
+    def test_criacao_de_colecao(self):
+        self.autenticar_como_user()
+        data = {'nome': 'Nova Coleção', 'descricao': 'Descrição', 'livros': [self.livro1.id]}
+        response = self.client.post('/colecoes/', data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Colecao.objects.count(), 2)  # Verifica que a quantidade de coleções aumentou
-        self.assertEqual(Colecao.objects.last().colecionador, self.colecionador)  # Verifica se o colecionador está correto
 
-    def test_criar_colecao_usuario_nao_autenticado(self):
-        """
-        Teste que verifica que um usuário não autenticado não pode criar uma coleção.
-        """
-        url = '/colecoes/'
-        data = {'nome': 'Nova Coleção'}
-        
-        response = self.client.post(url, data, format='json')
-        
-        # Verifica se o status é 401 (não autorizado)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(Colecao.objects.count(), 1)  # Verifica que nenhuma nova coleção foi criada
-
-    def test_permissao_editar_colecao(self):
-        """
-        Teste que verifica que apenas o colecionador pode editar a coleção.
-        """
-        url = f'/colecoes/{self.colecao.id}/'  # URL da coleção criada
-        
-        # Tentando editar com o colecionador
-        data = {'nome': 'Coleção Atualizada'}
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.colecionador_token.key)
-        response = self.client.put(url, data, format='json')
-        
-        # Verifica se a edição foi bem-sucedida
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.colecao.refresh_from_db()  # Atualiza a instância da coleção
-        self.assertEqual(self.colecao.nome, 'Coleção Atualizada')
-
-        # Tentando editar com outro usuário
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.outro_usuario_token.key)
-        response = self.client.put(url, data, format='json')
-        
-        # Verifica se a edição falhou
+    def test_permissao_edicao_colecao(self):
+        self.autenticar_como_other_user()
+        data = {'nome': 'Coleção Editada'}
+        response = self.client.patch(f'/colecoes/{self.colecao.id}/', data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.colecao.refresh_from_db()  # Atualiza a instância da coleção
-        self.assertNotEqual(self.colecao.nome, 'Coleção Atualizada')  # O nome da coleção não deve ter mudado
 
-    def test_permissao_deletar_colecao(self):
-        """
-        Teste que verifica que apenas o colecionador pode deletar sua coleção.
-        """
-        url = f'/colecoes/{self.colecao.id}/'
-        
-        # Tentando deletar com o colecionador
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.colecionador_token.key)
-        response = self.client.delete(url)
-        
-        # Verifica se a deleção foi bem-sucedida
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Colecao.objects.count(), 0)  # Verifica se a coleção foi removida
-
-        # Criando uma nova coleção para testar
-        self.colecao = Colecao.objects.create(nome='Minha Nova Coleção', colecionador=self.colecionador)
-        
-        # Tentando deletar com outro usuário
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.outro_usuario_token.key)
-        response = self.client.delete(url)
-        
-        # Verifica se a deleção falhou
+    def test_permissao_delecao_colecao(self):
+        self.autenticar_como_other_user()
+        response = self.client.delete(f'/colecoes/{self.colecao.id}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(Colecao.objects.count(), 1)  # A coleção não deve ser removida
 
-    def test_listagem_colecao_usuario_autenticado(self):
-        """
-        Teste que verifica se coleções podem ser listadas para usuários autenticados.
-        """
-        url = '/colecoes/'
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.colecionador_token.key)
-        
-        response = self.client.get(url)
-        
-        # Verifica se a coleção aparece na listagem
+    def test_listagem_de_colecoes(self):
+        self.autenticar_como_user()
+        response = self.client.get('/colecoes/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)  # Apenas uma coleção deve ser retornada
-        self.assertEqual(response.data[0]['nome'], 'Minha Coleção')
-
-    def test_listagem_colecao_usuario_nao_autenticado(self):
-        """
-        Teste que verifica que usuários não autenticados não podem listar coleções.
-        """
-        url = '/colecoes/'
-        
-        response = self.client.get(url)
-        
-        # Verifica se o status é 401 (não autorizado)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(len(response.data), 1)

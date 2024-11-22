@@ -87,3 +87,4 @@ class ColecaoDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Colecao.objects.all()
     serializer_class = ColecaoSerializer
     permission_classes = [IsColecionadorOrReadOnly]
+
