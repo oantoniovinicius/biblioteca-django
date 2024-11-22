@@ -1,11 +1,13 @@
 from rest_framework import permissions
 
-class IsColecionador(permissions.BasePermission):
-
+class IsColecionadorOrReadOnly(permissions.BasePermission):
+    """
+    Permite apenas ao colecionador modificar os dados.
+    Outros usuários podem visualizar.
+    """
     def has_object_permission(self, request, view, obj):
-        # Permite leitura para todos os usuários
+        # Permite leitura para métodos seguros
         if request.method in permissions.SAFE_METHODS:
             return True
-        
-        # Permite edição/exclusão apenas para o colecionador da coleção
+        # Permite modificação apenas ao colecionador
         return obj.colecionador == request.user

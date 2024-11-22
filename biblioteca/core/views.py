@@ -49,7 +49,7 @@ class LivroDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Livro.objects.all()
     serializer_class = LivroSerializer
     name = "livro-detail"
-    
+
 # Permissão personalizada para Colecao
 class IsColecionadorOrReadOnly(permissions.BasePermission):
     """

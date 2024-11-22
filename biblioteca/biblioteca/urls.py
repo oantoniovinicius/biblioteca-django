@@ -36,6 +36,10 @@ urlpatterns = [
     path('autores/', views.AutorList.as_view(), name='autores-list'),  # Nova rota para a CBV AutorList
     path('autores/<int:pk>/', views.AutorDetail.as_view(), name='autor-detail'),  # Nova rota para a CBV AutorDetail
     
+    # URLs para o modelo Colecao
+    path('colecoes/', views.ColecaoListCreate.as_view(), name='colecao-list-create'),
+    path('colecoes/<int:pk>/', views.ColecaoDetail.as_view(), name='colecao-detail'),
+
     path('api/token/', obtain_auth_token, name='api_token_auth'),  # Endpoint para obter token
 
     # Endpoints de schema e documentação
