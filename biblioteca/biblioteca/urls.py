@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from core import views
+from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,4 +34,6 @@ urlpatterns = [
     # URLs para o modelo Autor
     path('autores/', views.AutorList.as_view(), name='autores-list'),  # Nova rota para a CBV AutorList
     path('autores/<int:pk>/', views.AutorDetail.as_view(), name='autor-detail'),  # Nova rota para a CBV AutorDetail
+    
+    path('api/token/', obtain_auth_token, name='api_token_auth'),  # Endpoint para obter token
 ]
