@@ -1,7 +1,7 @@
-from rest_framework import generics
+from rest_framework import generics, permissions
 from django_filters import rest_framework as filters
-from .models import Categoria, Autor, Livro
-from .serializers import CategoriaSerializer, AutorSerializer, LivroSerializer
+from .models import Categoria, Autor, Livro, Colecao
+from .serializers import CategoriaSerializer, AutorSerializer, LivroSerializer, ColecaoSerializer
 
 # Views para o modelo Categoria
 class CategoriaList(generics.ListCreateAPIView):
@@ -52,3 +52,39 @@ class LivroDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Livro.objects.all()
     serializer_class = LivroSerializer
     name = "livro-detail"
+    
+class IsColecionadorOrReadOnly(permissions.BasePermission):
+    """
+    Permite apenas ao colecionador modificar os dados.
+    Outros usuários podem apenas visualizar.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Permite leitura para qualquer método seguro (GET, HEAD ou OPTIONS)
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        # Permite modificações apenas para o colecionador da coleção
+        return obj.colecionador == request.user
+
+class ColecaoListCreate(generics.ListCreateAPIView):
+    """
+    Listagem e criação de coleções.
+    Qualquer usuário pode listar as coleções.
+    Apenas usuários autenticados podem criar coleções.
+    """
+    queryset = Colecao.objects.all()
+    serializer_class = ColecaoSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        # Define o colecionador como o usuário autenticado
+        serializer.save(colecionador=self.request.user)
+
+class ColecaoDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Recuperação, edição e exclusão de uma coleção específica.
+    Apenas o colecionador pode editar ou excluir.
+    """
+    queryset = Colecao.objects.all()
+    serializer_class = ColecaoSerializer
+    permission_classes = [IsColecionadorOrReadOnly]
+    

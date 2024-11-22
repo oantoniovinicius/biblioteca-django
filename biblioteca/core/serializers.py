@@ -48,15 +48,20 @@ class ColecaoSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     nome = serializers.CharField(max_length=100)
     descricao = serializers.CharField(required=False)
-    colecionador = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())  # Relacionamento com User
-    livros = serializers.PrimaryKeyRelatedField(queryset=Livro.objects.all(), many=True)  # Relacionamento com Livro
-    
+    colecionador = serializers.PrimaryKeyRelatedField(read_only=True)  # Tornar o colecionador somente leitura
+    livros = serializers.PrimaryKeyRelatedField(queryset=Livro.objects.all(), many=True)
+
     def create(self, validated_data):
-        return Colecao.objects.create(**validated_data)
+        livros = validated_data.pop('livros', [])
+        colecao = Colecao.objects.create(**validated_data)
+        colecao.livros.set(livros)
+        return colecao
     
     def update(self, instance, validated_data):
+        livros = validated_data.pop('livros', [])
         instance.nome = validated_data.get('nome', instance.nome)
         instance.descricao = validated_data.get('descricao', instance.descricao)
-        instance.colecionador = validated_data.get('colecionador', instance.colecionador)
         instance.save()
+        instance.livros.set(livros)
         return instance
+    
